@@ -190,12 +190,89 @@ class CountryServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // getCountries()
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("getCountries : sans critères retourne tous les pays via getAllCountries")
+    void devraitRetournerTousLesPaysSansCriteres() {
+        CountryResponse apiResponse = uneReponse(List.of(unPays("France"), unPays("Japon")));
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(), eq(CountryResponse.class)))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        List<Country> resultat = countryService.getCountries(null, null);
+
+        assertThat(resultat).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("getCountries : avec search seulement délègue la recherche à l'API")
+    void devraitRechercherParTermeSeul() {
+        CountryResponse apiResponse = uneReponse(List.of(unPays("France")));
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(), eq(CountryResponse.class)))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        List<Country> resultat = countryService.getCountries("France", null);
+
+        assertThat(resultat).hasSize(1);
+        assertThat(resultat.get(0).getCommonName()).isEqualTo("France");
+    }
+
+    @Test
+    @DisplayName("getCountries : avec region seulement filtre les pays par région")
+    void devraitFiltrerParRegionSeule() {
+        Country france = unPaysAvecRegion("France", "Europe");
+        Country japon = unPaysAvecRegion("Japon", "Asia");
+        CountryResponse apiResponse = uneReponse(List.of(france, japon));
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(), eq(CountryResponse.class)))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        List<Country> resultat = countryService.getCountries(null, "Europe");
+
+        assertThat(resultat).hasSize(1);
+        assertThat(resultat.get(0).getCommonName()).isEqualTo("France");
+    }
+
+    @Test
+    @DisplayName("getCountries : avec search et region filtre les résultats de recherche par région")
+    void devraitFiltrerParSearchEtRegion() {
+        Country france = unPaysAvecRegion("France", "Europe");
+        Country guadeloupe = unPaysAvecRegion("Guadeloupe", "Americas");
+        CountryResponse apiResponse = uneReponse(List.of(france, guadeloupe));
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(), eq(CountryResponse.class)))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        List<Country> resultat = countryService.getCountries("fr", "Europe");
+
+        assertThat(resultat).hasSize(1);
+        assertThat(resultat.get(0).getCommonName()).isEqualTo("France");
+    }
+
+    @Test
+    @DisplayName("getCountries : retourne une liste vide si aucun pays ne correspond à la région")
+    void devraitRetournerListeVideSiAucunPaysCorrespondALaRegion() {
+        CountryResponse apiResponse = uneReponse(List.of(unPaysAvecRegion("Japon", "Asia")));
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(), eq(CountryResponse.class)))
+                .thenReturn(new ResponseEntity<>(apiResponse, HttpStatus.OK));
+
+        List<Country> resultat = countryService.getCountries(null, "Europe");
+
+        assertThat(resultat).isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
     private Country unPays(String nom) {
         Country pays = new Country();
         pays.setNames(java.util.Map.of("common", nom));
+        return pays;
+    }
+
+    private Country unPaysAvecRegion(String nom, String region) {
+        Country pays = unPays(nom);
+        pays.setRegion(region);
         return pays;
     }
 

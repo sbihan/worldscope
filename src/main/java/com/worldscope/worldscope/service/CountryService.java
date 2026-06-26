@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service métier chargé des appels à l'API REST Countries externe.
@@ -114,7 +113,7 @@ public class CountryService {
         if (region != null && !region.isBlank()) {
             countries = countries.stream()
                     .filter(c -> region.equalsIgnoreCase(c.getRegion()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return countries;
     }
