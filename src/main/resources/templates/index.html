@@ -180,6 +180,33 @@
 
         .empty h2 { font-size: 48px; margin-bottom: 12px; }
         .empty p { font-size: 16px; }
+
+        .regions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .region-btn {
+            padding: 6px 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .region-btn:hover { background: #334155; color: #e2e8f0; }
+
+        .region-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-color: transparent;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -190,6 +217,7 @@
         <h1>WorldScope</h1>
     </div>
     <form class="search-form" th:action="@{/}" method="get">
+        <input type="hidden" name="region" th:value="${region}" th:if="${region}" />
         <input type="text" name="search"
                placeholder="Rechercher un pays..."
                th:value="${search}" />
@@ -201,11 +229,25 @@
 <main>
     <p th:if="${error}" class="error" th:text="${error}"></p>
 
+    <nav class="regions">
+        <a class="region-btn" th:classappend="${region == null} ? ' active'"
+           th:href="@{/(search=${search})}">🌐 Tous</a>
+        <a class="region-btn" th:classappend="${region == 'Africa'} ? ' active'"
+           th:href="@{/(region='Africa', search=${search})}">🌍 Africa</a>
+        <a class="region-btn" th:classappend="${region == 'Americas'} ? ' active'"
+           th:href="@{/(region='Americas', search=${search})}">🌎 Americas</a>
+        <a class="region-btn" th:classappend="${region == 'Asia'} ? ' active'"
+           th:href="@{/(region='Asia', search=${search})}">🌏 Asia</a>
+        <a class="region-btn" th:classappend="${region == 'Europe'} ? ' active'"
+           th:href="@{/(region='Europe', search=${search})}">🏰 Europe</a>
+        <a class="region-btn" th:classappend="${region == 'Oceania'} ? ' active'"
+           th:href="@{/(region='Oceania', search=${search})}">🏝️ Oceania</a>
+    </nav>
+
     <p class="stats">
         <span th:text="${countries.size()}"></span> pays trouvés
-        <th:block th:if="${search}">
-            pour "<span th:text="${search}"></span>"
-        </th:block>
+        <th:block th:if="${search}">pour "<span th:text="${search}"></span>"</th:block>
+        <th:block th:if="${region}">en <span th:text="${region}"></span></th:block>
     </p>
 
     <div th:if="${countries.isEmpty()}" class="empty">

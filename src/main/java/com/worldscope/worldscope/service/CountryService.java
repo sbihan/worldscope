@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service métier chargé des appels à l'API REST Countries externe.
@@ -91,6 +92,31 @@ public class CountryService {
                 url, HttpMethod.GET, buildRequest(), CountryResponse.class);
         List<Country> results = extractCountries(response);
         return results.isEmpty() ? null : results.get(0);
+    }
+
+    /**
+     * Récupère les pays en appliquant optionnellement un filtre texte et/ou un filtre par région.
+     * <p>
+     * Si {@code search} est renseigné, interroge l'API avec ce terme ; sinon récupère tous les pays.
+     * Le filtre région est appliqué côté serveur sur la liste résultante.
+     * </p>
+     *
+     * @param search terme de recherche (optionnel, ignoré si null ou vide)
+     * @param region région à filtrer : Africa, Americas, Asia, Europe, Oceania (optionnel)
+     * @return liste des pays correspondant aux critères, jamais {@code null}
+     * @throws RestClientException si l'appel HTTP échoue
+     */
+    public List<Country> getCountries(String search, String region) {
+        List<Country> countries = (search != null && !search.isBlank())
+                ? searchCountries(search)
+                : getAllCountries();
+
+        if (region != null && !region.isBlank()) {
+            countries = countries.stream()
+                    .filter(c -> region.equalsIgnoreCase(c.getRegion()))
+                    .collect(Collectors.toList());
+        }
+        return countries;
     }
 
     /**

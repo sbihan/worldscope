@@ -30,27 +30,25 @@ public class CountryController {
     /**
      * Affiche la page d'accueil avec la liste des pays.
      * <p>
-     * Si un terme de recherche est fourni, filtre les pays correspondants via l'API.
+     * Applique optionnellement un filtre texte et/ou un filtre par région.
      * En cas d'erreur d'appel à l'API, affiche une liste vide et un message d'erreur.
      * </p>
      *
-     * @param model  le modèle Thymeleaf alimenté avec les attributs {@code countries}, {@code search} et éventuellement {@code error}
-     * @param search terme de recherche saisi par l'utilisateur (optionnel, peut être {@code null} ou vide)
+     * @param model  le modèle Thymeleaf alimenté avec {@code countries}, {@code search}, {@code region} et éventuellement {@code error}
+     * @param search terme de recherche saisi par l'utilisateur (optionnel)
+     * @param region région à filtrer parmi Africa, Americas, Asia, Europe, Oceania (optionnel)
      * @return le nom de la vue Thymeleaf {@code index}
      */
     @GetMapping("/")
     public String home(Model model,
-                       @RequestParam(required = false) String search) {
+                       @RequestParam(required = false) String search,
+                       @RequestParam(required = false) String region) {
         try {
-            List<Country> countries;
-            if (search != null && !search.isBlank()) {
-                countries = countryService.searchCountries(search);
-            } else {
-                countries = countryService.getAllCountries();
-            }
+            List<Country> countries = countryService.getCountries(search, region);
             log.info("Nombre de pays récupérés : {}", countries.size());
             model.addAttribute("countries", countries);
             model.addAttribute("search", search);
+            model.addAttribute("region", region);
         } catch (RestClientException e) {
             log.error("Erreur lors de l'appel API : {}", e.getMessage());
             model.addAttribute("countries", Collections.emptyList());
