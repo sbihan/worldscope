@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldScope</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid #1e293b;
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span { font-size: 32px; }
+
+        .search-form {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .search-form input {
+            flex: 1;
+            padding: 10px 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-form input:focus { border-color: #60a5fa; }
+        .search-form input::placeholder { color: #64748b; }
+
+        .search-form button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .search-form button:hover { opacity: 0.85; }
+
+        .reset-btn {
+            padding: 10px 16px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover { background: #334155; color: #e2e8f0; }
+
+        main { padding: 32px 40px; }
+
+        .stats {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stats span { color: #60a5fa; font-weight: 600; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid #334155;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #60a5fa;
+            box-shadow: 0 8px 24px rgba(96, 165, 250, 0.15);
+        }
+
+        .card-flag {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            display: block;
+            background: #0f172a;
+        }
+
+        .card-body { padding: 14px; }
+
+        .card-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-info {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #0f172a;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #60a5fa;
+            border: 1px solid #1e3a5f;
+            margin-top: 8px;
+        }
+
+        .error {
+            background: #450a0a;
+            border: 1px solid #991b1b;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #475569;
+        }
+
+        .empty h2 { font-size: 48px; margin-bottom: 12px; }
+        .empty p { font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <span>🌍</span>
+        <h1>WorldScope</h1>
+    </div>
+    <form class="search-form" th:action="@{/}" method="get">
+        <input type="text" name="search"
+               placeholder="Rechercher un pays..."
+               th:value="${search}" />
+        <button type="submit">🔍</button>
+        <a class="reset-btn" href="/">✖</a>
+    </form>
+</header>
+
+<main>
+    <p th:if="${error}" class="error" th:text="${error}"></p>
+
+    <p class="stats">
+        <span th:text="${countries.size()}"></span> pays trouvés
+        <th:block th:if="${search}">
+            pour "<span th:text="${search}"></span>"
+        </th:block>
+    </p>
+
+    <div th:if="${countries.isEmpty()}" class="empty">
+        <h2>🔭</h2>
+        <p>Aucun pays trouvé pour cette recherche.</p>
+    </div>
+
+    <div class="grid">
+        <a class="card"
+           th:each="country : ${countries}"
+           th:href="@{/country/{name}(name=${country.commonName})}">
+            <img class="card-flag"
+                 th:src="${country.flagUrl}"
+                 th:alt="${country.commonName}"
+                 onerror="this.src='https://placehold.co/220x130/1e293b/475569?text=No+Flag'" />
+            <div class="card-body">
+                <div class="card-name" th:text="${country.commonName}"></div>
+                <div class="card-info">🏛️ <span th:text="${country.capitalName}"></span></div>
+                <div class="card-info">👥 <span th:text="${#numbers.formatInteger(country.population, 3, 'COMMA')}"></span></div>
+                <span class="badge" th:text="${country.region}"></span>
+            </div>
+        </a>
+    </div>
+</main>
+
+</body>
+</html>
